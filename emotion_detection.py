@@ -6,10 +6,10 @@ def emotion_detector(text_to_analyze):
     json_input = { "raw_document": { "text": text_to_analyze } }
 
     try:
-        res = requests.post(url, headers=headers, json=json_input) # Post Request
-        res.raise_for_status() # Check for errors
+        response = requests.post(url, headers=headers, json=json_input)
+        response.raise_for_status()
         return response.text
-        
+
     except requests.exceptions.RequestException as e:
         return f"An error occurred: {e}"
 
