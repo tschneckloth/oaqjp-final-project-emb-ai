@@ -1,14 +1,17 @@
-from flask import Flask, request, jsonify, render_template
+"""
+Flask application for emotion detection.
+"""
+from flask import Flask, request
 from EmotionDetection.emotion_detection import emotion_detector
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
-
 @app.route('/emotionDetector', methods=['GET'])
 def emotion_detector_endpoint():
+    """
+    Handle GET requests to analyze emotions in text.
+    Returns a plain text response with emotion analysis or an error message.
+    """
     text_to_analyze = request.args.get('textToAnalyze', '')
 
     if not text_to_analyze.strip():
