@@ -1,21 +1,26 @@
 import requests
 import json
 
+def generate_none_response():
+    return {'anger': None, 'disgust': None, 'fear': None, 'joy': None, 'sadness': None, 'dominant_emotion': None}
+
 def emotion_detector(text_to_analyze):
+    if not text_to_analyze.strip():
+        return generate_none_response()
+
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
-    headers = { "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock" }
-    json_input = { "raw_document": { "text": text_to_analyze } }
+    headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
+    json_input = {"raw_document": {"text": text_to_analyze}}
 
     try:
         response = requests.post(url, headers=headers, json=json_input)
-        response.raise_for_status()
-        response_dict = json.loads(response.text)
-        
-        emotions = response_dict.get('emotionPredictions', [{}])[0].get('emotion', {})
-        scores = {emotion: emotions.get(emotion, 0) for emotion in ['anger', 'disgust', 'fear', 'joy', 'sadness']}
-        dominant_emotion = max(scores, key=scores.get, default="none")
-        
-        return {**scores, 'dominant_emotion': dominant_emotion}
+        if response.status_code == 400:
+            return generate_none_response()
 
-    except requests.exceptions.RequestException as e:
-        return f"An error occurred: {e}"
+        response.raise_for_status()
+        emotions = json.loads(response.text).get('emotionPredictions', [{}])[0].get('emotion', {})
+        scores = {e: emotions.get(e, 0) for e in ['anger', 'disgust', 'fear', 'joy', 'sadness']}
+        return {**scores, 'dominant_emotion': max(scores, key=scores.get, default=None)}
+
+    except requests.exceptions.RequestException:
+        return generate_none_response()
